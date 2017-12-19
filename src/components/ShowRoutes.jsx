@@ -1,33 +1,79 @@
 import React, { Component } from 'react';
-import { ListGroup, ListGroupItem, Panel, Grid, Row, Col } from 'react-bootstrap';
+import { 
+  ListGroup, ListGroupItem, Panel, Grid, Row, Col,
+  FormGroup, ControlLabel, FormControl, HelpBlock
+} from 'react-bootstrap';
 
 class ShowRoutes extends Component {
   constructor() {
     super();
     this.state = {
-      routeData: []
+      routeData: [],
+      station: ''
+    }
+    this.handleStationChange = this.handleStationChange.bind(this);
+  }
+
+  handleStationChange (station) {
+    let api = 'http://localhost:8989/station/routes/'
+    if (station === 'all' || station.length === 8) {
+      api = api + station;
+      fetch(api).then(results => results.json())
+        .then(routeData => {
+          this.setState({
+            routeData: routeData,
+            station: station
+          })
+        })
+    } else {
+      this.setState({
+        routeData: [],
+        station: station
+      })
     }
   }
 
-  componentDidMount() {
-    let api = 'http://localhost:8989/station/routes'
-    fetch(api).then(results => results.json())
-      .then(routeData => {
-        this.setState({
-          routeData: routeData
-        })
-      })
-  }
-
   render() {
+    document.title = 'getRoutes'
+
     let routes = this.state.routeData.map((routeData) => {
       let key = routeData.from.station_id + 'to' + routeData.to.station_id
       return <Route key={key} data={routeData} />
     })
     return (
-      <div>
+      <Panel>
+        <SearchStation station={this.state.station} onStationChange={this.handleStationChange}/>
         {routes}
-      </div>
+      </Panel>
+    );
+  }
+}
+
+class SearchStation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(e) {
+    this.props.onStationChange(e.target.value);
+  }
+
+  render() {
+    let station = this.props.station
+    return (
+      <form>
+        <FormGroup
+          controlId="station"
+        >
+          <ControlLabel>Enter Station ID:</ControlLabel>
+          <FormControl
+            type="text"
+            value={station}
+            onChange={this.handleChange}
+          />
+        </FormGroup>
+      </form>
     );
   }
 }
