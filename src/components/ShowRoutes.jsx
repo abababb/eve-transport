@@ -1,8 +1,28 @@
 import React, { Component } from 'react';
 import { 
   ListGroup, ListGroupItem, Panel, Grid, Row, Col,
-  FormGroup, ControlLabel, FormControl, HelpBlock
+  FormGroup, ControlLabel, FormControl, Table
 } from 'react-bootstrap';
+
+function Green () {
+  return {
+    color: 'green',
+    bold: true
+  }
+}
+
+function Red () {
+  return {
+    color: 'red',
+    bold: true
+  }
+}
+
+function ColLabelWidth () {
+  return {
+    width: '15%'
+  }
+}
 
 class ShowRoutes extends Component {
   constructor() {
@@ -62,50 +82,30 @@ class SearchStation extends React.Component {
   render() {
     let station = this.props.station
     return (
-      <form>
-        <FormGroup
-          controlId="station"
-        >
-          <ControlLabel>Enter Station ID:</ControlLabel>
-          <FormControl
-            type="text"
-            value={station}
-            onChange={this.handleChange}
-          />
-        </FormGroup>
-      </form>
-    );
-  }
-}
-
-class Station extends React.Component {
-  render() {
-    return (
-      <Panel collapsible defaultExpanded header={this.props.label} >
-        <div>{this.props.stationData.station_id}</div>
-        <div>{this.props.stationData.solar_system.region}</div>
-        <div>{this.props.stationData.solar_system.constellation}</div>
-        <div>{this.props.stationData.solar_system.solarSystem}</div>
-      </Panel>
-    );
-  }
-}
-
-class StationPair extends React.Component {
-  render() {
-    return (
-      <Panel>
-        <Station stationData={this.props.from} label="From" />
-        <Station stationData={this.props.to} label="To" />
-      </Panel>
+      <FormGroup
+        controlId="station"
+      >
+        <ControlLabel>Enter Station ID:</ControlLabel>
+        <FormControl
+          type="text"
+          value={station}
+          onChange={this.handleChange}
+        />
+      </FormGroup>
     );
   }
 }
 
 class Route extends React.Component {
   render() {
+    let solarSystemFrom = this.props.data.from.solar_system
+    let solarSystemTo = this.props.data.to.solar_system
+    let header = solarSystemFrom.region + '.' + solarSystemFrom.solarSystem + '.' + this.props.data.from.station_id
+      + ' -> ' + solarSystemTo.region + '.' + solarSystemTo.solarSystem + '.' + this.props.data.to.station_id
+      + '    (' + this.props.data.jumps + ')'
+    ;
     return (
-      <Panel collapsible defaultExpanded header="Route Detail">
+      <Panel collapsible header={header}>
         <Grid>
           <Row>
             <Col xs={12} md={6}><RouteSummary data={this.props.data} /></Col>
@@ -120,53 +120,33 @@ class Route extends React.Component {
 class RouteSummary extends React.Component {
   render() {
     return (
-      <Panel collapsible defaultExpanded header="Summary">
-        <Panel>
-          <div>profit: {this.props.data.profit}</div>
-          <div>volume: {this.props.data.volume}</div>
-          <div>cost: {this.props.data.cost}</div>
-          <div>jumps: {this.props.data.jumps}</div>
-        </Panel>
-        <StationPair from={this.props.data.from} to={this.props.data.to} />
-        <JumpDetail jumps={this.props.data.detail} />
-      </Panel>
-    );
-  }
-}
-
-class JumpDetail extends React.Component {
-  render() {
-    if (!this.props.jumps) {
-      return null
-    }
-    return (
-      <Panel collapsible defaultExpanded header="Jumps Detail">
-        <ListGroup fill>
-        {
-          this.props.jumps.map((jump) =>
-            <ListGroupItem key={jump} >
-              <SolarSystem solarSystemData={jump} />
-            </ListGroupItem>
-          )
-        }
-        </ListGroup>
-      </Panel>
-    );
-  }
-}
-
-class SolarSystem extends React.Component {
-  render() {
-    return (
-      <div>{this.props.solarSystemData}</div>
+      <div>
+        <Table bordered hover>
+          <tbody>
+            <tr>
+              <td style={ColLabelWidth()}>profit</td>
+              <td style={Green()}>{parseInt(this.props.data.profit, 10).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td style={ColLabelWidth()}>cost</td>
+              <td style={Red()}>{parseInt(this.props.data.cost, 10).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td style={ColLabelWidth()}>volume</td>
+              <td>{this.props.data.volume}</td>
+            </tr>
+          </tbody>
+        </Table>
+      </div>
     );
   }
 }
 
 class OrderList extends React.Component {
   render() {
+    let header = 'Orders: ' + this.props.orders.length;
     return (
-      <Panel collapsible defaultExpanded header="Order list">
+      <Panel collapsible header={header}>
         <ListGroup fill>
         {
           this.props.orders.map((order) =>
@@ -186,10 +166,26 @@ class Order extends React.Component {
     return (
       <div>
         <Goods typeData={this.props.orderData.type} />
-        <div>amount: {this.props.orderData.amount} </div>
-        <div>profit: {this.props.orderData.profit} </div>
-        <div>buy: {this.props.orderData.buy_price} </div>
-        <div>sell: {this.props.orderData.sell_price} </div>
+        <Table bordered hover>
+          <tbody>
+            <tr>
+              <td style={ColLabelWidth()}>amount</td>
+              <td>{this.props.orderData.amount}</td>
+            </tr>
+            <tr>
+              <td style={ColLabelWidth()}>buy</td>
+              <td style={Red()}>{parseInt(this.props.orderData.buy_price, 10).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td style={ColLabelWidth()}>sell</td>
+              <td style={Green()}>{parseInt(this.props.orderData.sell_price, 10).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td style={ColLabelWidth()}>profit</td>
+              <td style={Green()}>{parseInt(this.props.orderData.profit, 10).toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </Table>
       </div>
     );
   }
