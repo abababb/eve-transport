@@ -35,7 +35,7 @@ class CalculateStation extends Component {
   componentDidMount() {
     let regionID = '10000043'
     let page = 1
-    let host = 'https://esi.tech.ccp.is/latest'
+    let host = 'http://198.8.93.95:8877/latest'
     let station = '60008494'
     let orderData = []
 
@@ -141,7 +141,7 @@ class CalculateStation extends Component {
                   typeOrder.type_adjusted_price = typePrices[typeOrder.type_id].adjusted_price
                 }
                 return typeOrder
-              }).sort((type1, type2) => (type1.profit_rate > type2.profit_rate))
+              }).sort((type1, type2) => (type1.profit_rate < type2.profit_rate))
               console.log(orderArr)
 
               // 设置展示数据
