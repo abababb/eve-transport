@@ -5,8 +5,6 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "mongodb": "^3.0.0-rc0",
-    "node-sass-chokidar": "0.0.3",
-    "npm-run-all": "^4.1.2",
     "react": "^16.2.0",
     "react-bootstrap": "^0.31.5",
     "react-dom": "^16.2.0",
@@ -18,11 +16,7 @@
   "scripts": {
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "build-css": "node-sass-chokidar src -o src",
-    "watch-css": "npm run build-css && node-sass-chokidar src -o src --watch --recursive",
-    "start-js": "react-scripts start",
-    "start": "npm-run-all -p watch-css start-js",
-    "build-js": "react-scripts build",
-    "build": "npm-run-all build-css build-js"
+    "start": "react-scripts start",
+    "build": "react-scripts build"
   }
 }
