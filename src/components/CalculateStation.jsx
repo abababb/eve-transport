@@ -33,10 +33,10 @@ class CalculateStation extends Component {
   }
 
   componentDidMount() {
-    let regionID = '10000043'
+    let regionID = '10000002'
     let page = 1
-    let host = 'http://198.8.93.95:8877/latest'
-    let station = '60008494'
+    let host = 'https://esi.tech.ccp.is/latest'
+    let station = '60003760'
     let orderData = []
 
     let fetchNextPage = (endFetch) => {
@@ -95,11 +95,18 @@ class CalculateStation extends Component {
 
       // 过滤有价值商品, 利润/成本比例限制(rateLimit), 买单量限制(bOrderLimit)
       
-      const rateLimit = 100
+      const rateLimitHigh = 10
+      const rateLimitLow = 2
       const bOrderLimit = 5
+      const hbuyLimitLow = 1000000
+      const hbuyLimitHigh = 6000000
       let typeArr = []
       orderArr = orderArr.filter(typeOrder => {
-        return typeOrder.hbuy > 0 && (typeOrder.lsell - typeOrder.hbuy) / typeOrder.hbuy > rateLimit && typeOrder.borders.length > bOrderLimit
+        return typeOrder.hbuy > hbuyLimitLow &&
+          typeOrder.hbuy < hbuyLimitHigh &&
+          (typeOrder.lsell - typeOrder.hbuy) / typeOrder.hbuy > rateLimitLow &&
+          (typeOrder.lsell - typeOrder.hbuy) / typeOrder.hbuy < rateLimitHigh &&
+          typeOrder.borders.length > bOrderLimit
       }).map(typeOrder => {
         typeArr.push(typeOrder.type_id)
         typeOrder.profit_rate = (typeOrder.lsell - typeOrder.hbuy) / typeOrder.hbuy
@@ -107,49 +114,51 @@ class CalculateStation extends Component {
       })
 
       // 获取商品名称
-      let api = '/universe/names/'
-      let url = host + api
-      fetch(url, {
-        method: 'post',
-        body: JSON.stringify(typeArr)
-      }).then(res => res.json())
-        .then(typeNames => {
-          typeNames = typeNames.reduce((typeNameDict, typeName) => {
-            typeNameDict[typeName.id] = typeName.name
-            return typeNameDict
-          }, {})
-          orderArr.map(typeOrder => {
-            typeOrder.type_name = typeNames[typeOrder.type_id]
-            return typeOrder
-          })
-
-          // 获取商品均价
-          let api = '/markets/prices/'
-          let url = host + api
-          fetch(url).then(res => res.json())
-            .then(typePrices => {
-              typePrices = typePrices.reduce((typePriceDict, typePrice) => {
-                typePriceDict[typePrice.type_id] = typePrice
-                return typePriceDict
-              }, {})
-
-              orderArr = orderArr.map(typeOrder => {
-                typeOrder.type_avg_price = 0
-                typeOrder.type_adjusted_price = 0
-                if (typePrices[typeOrder.type_id]) {
-                  typeOrder.type_avg_price = typePrices[typeOrder.type_id].average_price
-                  typeOrder.type_adjusted_price = typePrices[typeOrder.type_id].adjusted_price
-                }
-                return typeOrder
-              }).sort((type1, type2) => (type1.profit_rate < type2.profit_rate))
-              console.log(orderArr)
-
-              // 设置展示数据
-              this.setState({
-                marketData: orderArr
-              })
+      if (typeArr.length) {
+        let api = '/universe/names/'
+        let url = host + api
+        fetch(url, {
+          method: 'post',
+          body: JSON.stringify(typeArr)
+        }).then(res => res.json())
+          .then(typeNames => {
+            typeNames = typeNames.reduce((typeNameDict, typeName) => {
+              typeNameDict[typeName.id] = typeName.name
+              return typeNameDict
+            }, {})
+            orderArr.map(typeOrder => {
+              typeOrder.type_name = typeNames[typeOrder.type_id]
+              return typeOrder
             })
-        })
+
+            // 获取商品均价
+            let api = '/markets/prices/'
+            let url = host + api
+            fetch(url).then(res => res.json())
+              .then(typePrices => {
+                typePrices = typePrices.reduce((typePriceDict, typePrice) => {
+                  typePriceDict[typePrice.type_id] = typePrice
+                  return typePriceDict
+                }, {})
+
+                orderArr = orderArr.map(typeOrder => {
+                  typeOrder.type_avg_price = 0
+                  typeOrder.type_adjusted_price = 0
+                  if (typePrices[typeOrder.type_id]) {
+                    typeOrder.type_avg_price = typePrices[typeOrder.type_id].average_price
+                    typeOrder.type_adjusted_price = typePrices[typeOrder.type_id].adjusted_price
+                  }
+                  return typeOrder
+                }).sort((type1, type2) => (type1.profit_rate < type2.profit_rate))
+                console.log(orderArr)
+
+                // 设置展示数据
+                this.setState({
+                  marketData: orderArr
+                })
+              })
+          })
+      }
     })
   }
 
